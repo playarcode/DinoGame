@@ -307,7 +307,7 @@ function draw(now) {
     ctx.font = "bold 15px 'Courier New', monospace";
     ctx.textAlign = 'right';
     const h = String(hi).padStart(5, '0');
-    const s = String(Math.max(hi, Math.floor(score))).padStart(5, '0');
+    const s = String(Math.floor(score)).padStart(5, '0'
     ctx.fillText('HI ' + h + '   ' + s, W - 12, 30);
     ctx.textAlign = 'left';
   }
