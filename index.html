@@ -303,13 +303,13 @@ function draw(now) {
   // score / highscore (top right)
   const showScore = state === STATE.PLAY ? (scoreFlash <= 0 || Math.floor(scoreFlash * 10) % 2 === 0) : true;
   if (showScore) {
-    ctx.fillStyle = INK;
-    ctx.font = "bold 15px 'Courier New', monospace";
-    ctx.textAlign = 'right';
-    const h = String(hi).padStart(5, '0');
-    const s = String(Math.floor(score)).padStart(5, '0'
-    ctx.fillText('HI ' + h + '   ' + s, W - 12, 30);
-    ctx.textAlign = 'left';
+  ctx.fillStyle = INK;
+  ctx.font = "bold 15px 'Courier New', monospace";
+  ctx.textAlign = 'right';
+  const h = String(hi).padStart(5, '0');
+  const s = String(Math.floor(score)).padStart(5, '0');
+  ctx.fillText('HI ' + h + '   ' + s, W - 12, 30);
+  ctx.textAlign = 'left';
   }
 
   if (state === STATE.PLAY) {
