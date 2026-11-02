@@ -18,6 +18,7 @@
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 const W = canvas.width, H = canvas.height;
+ctx.imageSmoothingEnabled = false;   // keep the sprite pixel-crisp when scaling
 
 const GROUND_Y = 240;          // ground line
 const DINO_X   = 60;           // dino never moves horizontally
@@ -91,6 +92,15 @@ function drawMap(map, x, y, s, color) {
   }
 }
 
+/* ================= dino sprites (live in the dino-model folder next to this file) ================= */
+const SPRITE_KEYS = ['dino1', 'dino2', 'dino3', 'dino4', 'dino5', 'dino6', 'dino-idle', 'dino-jump'];
+const SPRITES = {};
+for (const k of SPRITE_KEYS) {
+  const img = new Image();
+  img.src = 'dino-model/' + k + '.png';
+  SPRITES[k] = img;
+}
+
 /* ================= obstacles ================= */
 const PATTERNS = [
   [{dx: 0,  s: 2}],
@@ -160,7 +170,7 @@ function update(dt) {
 
   jumpCooldown = Math.max(0, jumpCooldown - dt);
   groundOffset += speed * dt;
-  legTimer += dt * 9;
+  legTimer += dt * 5;   // paces the 6-frame walk cycle
 
   for (const c of clouds) {
     c.x -= speed * 0.25 * dt;
@@ -217,7 +227,8 @@ function drawCloud(c) {
   ctx.fillRect(c.x + 18, c.y + 2, 12, 8);
 }
 
-function drawDino(running, frame) {
+/* old-school pixel dino, kept as a fallback in case the images can't load */
+function drawDinoPixels(running, frame) {
   const x = DINO_X, top = GROUND_Y - DINO_H;
   drawMap(DINO_MAP, x, top, 2, INK);
   ctx.fillStyle = INK;
@@ -230,6 +241,25 @@ function drawDino(running, frame) {
     ctx.fillRect(l2, base, 7, 16);
   }
   ctx.fillRect(x + 34, top + 22, 10, 4);   // little arm
+}
+
+/* draws one of the sprite PNGs scaled to game height, feet on the ground line */
+function drawDinoSprite(key) {
+  const img = SPRITES[key];
+  if (!img || !img.complete || !img.naturalWidth) return false;   // not loaded (or missing) yet
+  const h = DINO_H;
+  const w = Math.max(1, Math.round(img.naturalWidth * h / img.naturalHeight));
+  ctx.drawImage(img, DINO_X, GROUND_Y - h, w, h);
+  return true;
+}
+
+function drawDino(running, frame) {
+  // walking: 6-frame cycle · start screen: idle pose · game over: 'jump' pose
+  const key = state === STATE.OVER ? 'dino-jump'
+            : running ? 'dino' + (frame + 1)
+            : 'dino-idle';
+  if (drawDinoSprite(key)) return;
+  drawDinoPixels(running, frame);
 }
 
 function drawObstacle(o) {
@@ -268,7 +298,7 @@ function draw(now) {
   for (const c of clouds) drawCloud(c);
   drawGround();
   for (const o of obstacles) drawObstacle(o);
-  drawDino(state === STATE.PLAY, Math.floor(legTimer) % 2);
+  drawDino(state === STATE.PLAY, Math.floor(legTimer) % 6);
 
   // score / highscore (top right)
   const showScore = state === STATE.PLAY ? (scoreFlash <= 0 || Math.floor(scoreFlash * 10) % 2 === 0) : true;
